@@ -252,39 +252,92 @@
                     </label>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
-                    <input type="text" placeholder="Opção A" class="p-3 rounded-lg border border-slate-100 bg-white text-sm outline-none">
-                    <input type="text" placeholder="Opção B" class="p-3 rounded-lg border border-slate-100 bg-white text-sm outline-none">
-                    <input type="text" placeholder="Opção C" class="p-3 rounded-lg border border-slate-100 bg-white text-sm outline-none">
-                    <input type="text" placeholder="Opção D" class="p-3 rounded-lg border border-slate-100 bg-white text-sm outline-none">
+                    <div class="flex items-center gap-2 p-2 rounded-lg border border-slate-100 bg-white">
+                        <input type="radio" name="q${qCount}_correct" value="0" class="w-4 h-4 text-blue-600 cursor-pointer" required>
+                        <input type="text" placeholder="Opção A" class="w-full text-sm outline-none bg-transparent">
+                    </div>
+                    <div class="flex items-center gap-2 p-2 rounded-lg border border-slate-100 bg-white">
+                        <input type="radio" name="q${qCount}_correct" value="1" class="w-4 h-4 text-blue-600 cursor-pointer" required>
+                        <input type="text" placeholder="Opção B" class="w-full text-sm outline-none bg-transparent">
+                    </div>
+                    <div class="flex items-center gap-2 p-2 rounded-lg border border-slate-100 bg-white">
+                        <input type="radio" name="q${qCount}_correct" value="2" class="w-4 h-4 text-blue-600 cursor-pointer" required>
+                        <input type="text" placeholder="Opção C" class="w-full text-sm outline-none bg-transparent">
+                    </div>
+                    <div class="flex items-center gap-2 p-2 rounded-lg border border-slate-100 bg-white">
+                        <input type="radio" name="q${qCount}_correct" value="3" class="w-4 h-4 text-blue-600 cursor-pointer" required>
+                        <input type="text" placeholder="Opção D" class="w-full text-sm outline-none bg-transparent">
+                    </div>
                 </div>
             `;
             container.appendChild(div);
             lucide.createIcons();
         }
 
-        function salvarQuiz() {
-            showSuccessModal("Quiz guardado com sucesso! Agora ele já pode ser selecionado nos materiais de apoio.");
-            
+        async function salvarQuiz() {
+            const tituloInput = document.getElementById('quiz-titulo');
+            if (!tituloInput || !tituloInput.value) {
+                alert('Preencha o título do quiz!');
+                return;
+            }
+
+            const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+            if (authError || !user) {
+                alert('Usuário não autenticado!');
+                return;
+            }
+
             const container = document.getElementById('questions-container');
-            container.innerHTML = `
-                <div class="p-6 bg-slate-50 rounded-2xl border">
-                    <div class="flex items-start gap-4 mb-4">
-                        <input type="text" placeholder="Pergunta 1" class="flex-1 p-3 rounded-xl border border-slate-200 font-bold outline-none focus:ring-2 focus:ring-blue-500/20">
-                        <label class="cursor-pointer bg-white border border-slate-200 p-3 rounded-xl hover:bg-slate-50 transition-all text-slate-500 hover:text-blue-600 flex items-center justify-center" title="Adicionar Imagem">
-                            <i data-lucide="image" size="20"></i>
-                            <input type="file" accept="image/*" class="hidden">
-                        </label>
-                    </div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <input type="text" placeholder="Opção A" class="p-3 rounded-lg border border-slate-100 bg-white text-sm outline-none">
-                        <input type="text" placeholder="Opção B" class="p-3 rounded-lg border border-slate-100 bg-white text-sm outline-none">
-                        <input type="text" placeholder="Opção C" class="p-3 rounded-lg border border-slate-100 bg-white text-sm outline-none">
-                        <input type="text" placeholder="Opção D" class="p-3 rounded-lg border border-slate-100 bg-white text-sm outline-none">
-                    </div>
-                </div>
-            `;
-            qCount = 1;
-            lucide.createIcons();
+            const questions = container.children;
+            let result = [];
+            
+            for(let i=0; i<questions.length; i++) {
+                const inputs = questions[i].querySelectorAll('input[type="text"]');
+                const radios = questions[i].querySelectorAll('input[type="radio"]');
+                let correctIdx = -1;
+                
+                radios.forEach(r => {
+                    if (r.checked) correctIdx = parseInt(r.value);
+                });
+
+                if (correctIdx === -1) {
+                    alert(`Por favor, marque a alternativa correta na pergunta ${i+1}.`);
+                    return;
+                }
+
+                result.push({
+                    pergunta: inputs[0].value,
+                    opcoes: [inputs[1].value, inputs[2].value, inputs[3].value, inputs[4].value],
+                    correta: correctIdx
+                });
+            }
+
+            const btn = document.querySelector('button[onclick="salvarQuiz()"]');
+            let originalText = "";
+            if (btn) {
+                originalText = btn.innerText;
+                btn.innerText = 'Salvando...';
+                btn.disabled = true;
+            }
+
+            const quizData = {
+                titulo: tituloInput.value,
+                perguntas: result,
+                voluntario_id: user.id
+            };
+
+            const { data, error } = await supabaseClient.from('quizzes').insert([quizData]);
+
+            if (error) {
+                alert("Erro ao salvar quiz no banco: " + error.message);
+                if (btn) {
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                }
+            } else {
+                alert('Quiz criado e publicado com sucesso!');
+                window.location.reload();
+            }
         }
 
         // Lógica de Material de Apoio

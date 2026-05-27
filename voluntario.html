@@ -194,6 +194,12 @@
                                 <h2 class="text-2xl font-black">Criar Novo Quiz</h2>
                                 <button onclick="salvarQuiz()" class="px-6 py-2.5 rounded-xl font-bold bg-green-600 text-white shadow-lg shadow-green-100">Guardar Quiz</button>
                             </div>
+                            
+                            <div class="mb-6">
+                                <label class="text-xs font-black text-slate-400 uppercase tracking-wider ml-1">Título do Quiz</label>
+                                <input type="text" id="quiz-titulo" placeholder="Ex: Simulado de Matemática" class="w-full mt-1 bg-slate-50 border border-slate-100 rounded-2xl py-3.5 px-4 font-bold outline-none focus:ring-2 focus:ring-blue-500/20" required>
+                            </div>
+
                             <div id="questions-container" class="space-y-6">
                                 <div class="p-6 bg-slate-50 rounded-2xl border">
                                     <div class="flex items-start gap-4 mb-4">
@@ -204,10 +210,22 @@
                                         </label>
                                     </div>
                                     <div class="grid grid-cols-2 gap-3">
-                                        <input type="text" placeholder="Opção A" class="p-3 rounded-lg border border-slate-100 bg-white text-sm outline-none">
-                                        <input type="text" placeholder="Opção B" class="p-3 rounded-lg border border-slate-100 bg-white text-sm outline-none">
-                                        <input type="text" placeholder="Opção C" class="p-3 rounded-lg border border-slate-100 bg-white text-sm outline-none">
-                                        <input type="text" placeholder="Opção D" class="p-3 rounded-lg border border-slate-100 bg-white text-sm outline-none">
+                                        <div class="flex items-center gap-2 p-2 rounded-lg border border-slate-100 bg-white">
+                                            <input type="radio" name="q1_correct" value="0" class="w-4 h-4 text-blue-600 cursor-pointer" required>
+                                            <input type="text" placeholder="Opção A" class="w-full text-sm outline-none bg-transparent">
+                                        </div>
+                                        <div class="flex items-center gap-2 p-2 rounded-lg border border-slate-100 bg-white">
+                                            <input type="radio" name="q1_correct" value="1" class="w-4 h-4 text-blue-600 cursor-pointer" required>
+                                            <input type="text" placeholder="Opção B" class="w-full text-sm outline-none bg-transparent">
+                                        </div>
+                                        <div class="flex items-center gap-2 p-2 rounded-lg border border-slate-100 bg-white">
+                                            <input type="radio" name="q1_correct" value="2" class="w-4 h-4 text-blue-600 cursor-pointer" required>
+                                            <input type="text" placeholder="Opção C" class="w-full text-sm outline-none bg-transparent">
+                                        </div>
+                                        <div class="flex items-center gap-2 p-2 rounded-lg border border-slate-100 bg-white">
+                                            <input type="radio" name="q1_correct" value="3" class="w-4 h-4 text-blue-600 cursor-pointer" required>
+                                            <input type="text" placeholder="Opção D" class="w-full text-sm outline-none bg-transparent">
+                                        </div>
                                     </div>
                                 </div>
                             </div>
