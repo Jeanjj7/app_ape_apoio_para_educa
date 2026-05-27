@@ -79,6 +79,7 @@
 
             // Carregar aulas
             await carregarAulas();
+            await carregarQuizzes();
         }
 
         
@@ -318,29 +319,133 @@
         }
 
         // Simulação do Quiz
-        window.iniciarQuiz = function() {
-            const modal = document.getElementById('quiz-modal');
-            if (modal) modal.classList.remove('hidden-section');
-        }
+        let quizzesGlobais = [];
+        let quizAtualIndex = -1;
 
-        window.fecharQuiz = function() {
-            const modal = document.getElementById('quiz-modal');
-            if (modal) modal.classList.add('hidden-section');
-        }
+        async function carregarQuizzes() {
+            const container = document.getElementById('lista-quizzes-container');
+            const { data, error } = await supabaseClient
+                .from('quizzes')
+                .select('*, perfis(nome)');
 
-        window.finalizarQuiz = function() {
-            const selected = document.querySelector('input[name="q1"]:checked');
-            fecharQuiz();
-            
-            if (!selected) {
-                showFeedbackModal('error', 'Atenção', 'Você não selecionou nenhuma resposta!');
+            if (error) {
+                console.error("Erro ao buscar quizzes:", error);
+            }
+
+            if (error || !data || data.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8">
+                        <div class="w-16 h-16 bg-slate-50 text-slate-300 rounded-3xl mx-auto flex items-center justify-center mb-4 border border-slate-100">
+                            <i data-lucide="help-circle" size="32"></i>
+                        </div>
+                        <p class="text-slate-500 font-bold">Nenhum quiz disponível no momento.</p>
+                    </div>`;
+                lucide.createIcons();
                 return;
             }
 
-            if (selected.value === 'correct') {
-                showFeedbackModal('success', 'Parabéns!', 'Você acertou em cheio! A fórmula de Bhaskara é x = (-b ± √(b² - 4ac)) / 2a.');
+            quizzesGlobais = data;
+            container.innerHTML = '';
+            
+            data.forEach((quiz, index) => {
+                const totalPerguntas = Array.isArray(quiz.perguntas) ? quiz.perguntas.length : 0;
+                container.innerHTML += `
+                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6 item-card">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-orange-50 text-orange-500 rounded-2xl flex items-center justify-center shrink-0">
+                                <i data-lucide="help-circle" size="24"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-black text-slate-900 text-lg">${quiz.titulo}</h4>
+                                <p class="text-xs font-bold text-slate-400 mt-1 flex items-center gap-2">
+                                    <i data-lucide="user" size="14"></i> Prof. ${quiz.perfis?.nome || 'Desconhecido'} • 
+                                    <i data-lucide="list-checks" size="14"></i> ${totalPerguntas} Perguntas
+                                </p>
+                            </div>
+                        </div>
+                        <button onclick="iniciarQuiz(${index})" class="w-full md:w-auto shrink-0 bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl font-black text-sm shadow-lg shadow-orange-200 transition-all active:scale-95">
+                            RESPONDER
+                        </button>
+                    </div>
+                `;
+            });
+            lucide.createIcons();
+        }
+
+        window.iniciarQuiz = function(index) {
+            quizAtualIndex = index;
+            const quiz = quizzesGlobais[index];
+            if (!quiz) return;
+
+            document.getElementById('quiz-modal-titulo').innerText = quiz.titulo;
+            document.getElementById('quiz-modal-info').innerText = `${quiz.perguntas.length} Perguntas`;
+
+            const container = document.getElementById('quiz-perguntas-container');
+            container.innerHTML = '';
+
+            quiz.perguntas.forEach((p, pIndex) => {
+                const num = pIndex + 1;
+                const letras = ['A', 'B', 'C', 'D'];
+                let opcoesHTML = '';
+                
+                p.opcoes.forEach((op, oIndex) => {
+                    opcoesHTML += `
+                        <label class="flex items-center gap-4 p-4 rounded-2xl border-2 border-slate-100 cursor-pointer hover:border-sky-200 hover:bg-sky-50 transition-all group">
+                            <input type="radio" name="q${pIndex}" value="${oIndex}" class="w-5 h-5 text-sky-600 focus:ring-sky-500 border-slate-300">
+                            <span class="font-medium text-slate-700 group-hover:text-sky-700">${letras[oIndex]}) ${op}</span>
+                        </label>
+                    `;
+                });
+
+                container.innerHTML += `
+                    <div class="mb-6 p-4 border border-slate-100 rounded-2xl bg-slate-50">
+                        <h4 class="text-lg font-bold text-slate-800 mb-4">${num}. ${p.pergunta}</h4>
+                        <div class="space-y-3">
+                            ${opcoesHTML}
+                        </div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('quiz-modal').classList.remove('hidden-section');
+        }
+
+        window.fecharQuiz = function() {
+            document.getElementById('quiz-modal').classList.add('hidden-section');
+        }
+
+        window.finalizarQuiz = function() {
+            const quiz = quizzesGlobais[quizAtualIndex];
+            if (!quiz) return;
+
+            let acertos = 0;
+            let total = quiz.perguntas.length;
+            let faltou = false;
+
+            for(let i=0; i<total; i++) {
+                const selecionado = document.querySelector(`input[name="q${i}"]:checked`);
+                if(!selecionado) {
+                    faltou = true;
+                    break;
+                }
+                const resIdx = parseInt(selecionado.value);
+                if (resIdx === parseInt(quiz.perguntas[i].correta)) {
+                    acertos++;
+                }
+            }
+
+            if(faltou) {
+                showFeedbackModal('error', 'Atenção', 'Você precisa responder todas as perguntas antes de finalizar!');
+                return;
+            }
+
+            fecharQuiz();
+            const nota = Math.ceil((acertos / total) * 10);
+            
+            if (nota >= 6) {
+                showFeedbackModal('success', 'Quiz Finalizado!', `Parabéns! Você acertou ${acertos} de ${total} perguntas. Nota equivalente: ${nota}.`);
             } else {
-                showFeedbackModal('error', 'Poxa, não foi dessa vez...', 'A resposta correta era a Letra A. Não desista, continue estudando e tentando!');
+                showFeedbackModal('error', 'Quiz Finalizado', `Você acertou ${acertos} de ${total} perguntas. Nota equivalente: ${nota}. Continue estudando e tente novamente!`);
             }
         }
 
