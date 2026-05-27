@@ -60,9 +60,11 @@
             const perfilFoto = document.getElementById('perfil-foto');
             if (perfilFoto) perfilFoto.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(nomeExibicao)}`;
 
-            // Exibir a tela principal
-            document.getElementById('auth-container').classList.add('hidden-section');
-            document.getElementById('app-wrapper').classList.remove('hidden-section');
+            // Ocultar auth-container apenas se ele existir (previne TypeError)
+            const authCont = document.getElementById('auth-container');
+            if (authCont) authCont.classList.add('hidden-section');
+            const appWrap = document.getElementById('app-wrapper');
+            if (appWrap) appWrap.classList.remove('hidden-section');
             lucide.createIcons();
 
             // Carregar agenda
@@ -77,10 +79,13 @@
 
         // Logout
         async function handleLogout() {
-            await supabaseClient.auth.signOut();
-            document.getElementById('auth-container').classList.remove('hidden-section');
-            document.getElementById('app-wrapper').classList.add('hidden-section');
-            window.location.href = 'loginVoluntario.html';
+            try {
+                await supabaseClient.auth.signOut();
+            } catch(e) {
+                console.error("Logout falhou", e);
+            } finally {
+                window.location.href = 'loginVoluntario.html';
+            }
         }
 
         // Navegação de Seções

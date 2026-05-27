@@ -24,8 +24,7 @@ window.handleLoginReal = async function(e) {
             });
 
             if (error) {
-                document.getElementById('success-msg').innerText = 'Erro no Login: ' + error.message;
-                document.getElementById('success-modal').classList.remove('hidden-section');
+                alert('Erro no Login: ' + error.message);
                 btn.innerHTML = originalContent;
                 btn.disabled = false;
             } else {
@@ -55,8 +54,7 @@ window.handleSignupReal = async function(e) {
             const pass2 = senhas[1].value;
 
             if (pass1 !== pass2) {
-                document.getElementById('success-msg').innerText = 'As senhas não coincidem!';
-                document.getElementById('success-modal').classList.remove('hidden-section');
+                alert('As senhas não coincidem!');
                 btn.innerHTML = originalContent;
                 btn.disabled = false;
                 return;
@@ -68,8 +66,7 @@ window.handleSignupReal = async function(e) {
             });
 
             if (error) {
-                document.getElementById('success-msg').innerText = 'Erro no Cadastro: ' + error.message;
-                document.getElementById('success-modal').classList.remove('hidden-section');
+                alert('Erro no Cadastro: ' + error.message);
                 btn.innerHTML = originalContent;
                 btn.disabled = false;
             } else {
@@ -83,17 +80,14 @@ window.handleSignupReal = async function(e) {
                     });
                     if (dbError) {
                         console.error("Erro ao criar perfil:", dbError);
-                        document.getElementById('success-msg').innerText = 'Conta criada, mas erro ao salvar perfil: ' + dbError.message;
-                        document.getElementById('success-modal').classList.remove('hidden-section');
+                        alert('Conta criada, mas erro ao salvar perfil: ' + dbError.message);
                         btn.innerHTML = originalContent;
                         btn.disabled = false;
                         return;
                     }
                 }
-                document.getElementById('success-msg').innerText = 'Conta criada com sucesso! Faça login.';
-                document.getElementById('success-modal').classList.remove('hidden-section');
+                alert('Conta criada com sucesso! Faça login.');
                 window.location.href = 'loginVoluntario.html';
-                e.target.reset();
                 btn.innerHTML = originalContent;
                 btn.disabled = false;
             }
