@@ -63,6 +63,7 @@ nav {
     align-items: center;
 
     padding: 20px;
+    position: relative;
 
 }
 
@@ -858,14 +859,103 @@ nav ul li a:hover::after {
 
 /* ===== RESPONSIVO ===== */
 
-@media(max-width: 768px) {
-
-    .footer-container {
-
-        flex-direction: column;
-
-        gap: 40px;
-
+@media screen and (max-width: 900px) {
+    header {
+        position: relative !important;
+        background: rgba(15, 23, 42, 0.95);
     }
 
+    nav {
+        flex-wrap: wrap;
+    }
+
+    .menu-toggle {
+        display: block;
+    }
+
+    nav ul {
+        display: none;
+        flex-direction: column;
+        width: 100%;
+        background-color: #1b3974;
+        margin-top: 15px;
+        border-radius: 10px;
+        position: static !important;
+        padding: 10px;
+    }
+
+    nav ul.ativo {
+        display: flex;
+        animation: aparecer 0.3s ease;
+    }
+
+    @keyframes aparecer {
+        from {opacity: 0; transform: translateY(-10px);}
+        to {opacity: 1; transform: translateY(0);}
+    }
+
+    nav ul li {
+        padding: 12px;
+        width: 100%;
+        text-align: center;
+    }
+
+    nav ul li a {
+        display: block;
+        color: #fff;
+        text-align: center;
+    }
+
+    #banner {
+        height: auto;
+        min-height: auto;
+        padding: 60px 20px;
+        text-align: center;
+        display: block;
+    }
+
+    .hero-content {
+        width: 100%;
+        margin: 0 auto;
+        padding-top: 0;
+    }
+
+    .hero-content h1 {
+        font-size: clamp(2rem, 8vw, 3.5rem);
+        line-height: 1.2;
+    }
+
+    .hero-content p {
+        font-size: 16px;
+        line-height: 1.6;
+    }
+
+    .secao {
+        flex-direction: column !important;
+        padding: 60px 20px;
+        gap: 40px;
+    }
+
+    .secao-imagem img {
+        width: 200px;
+    }
+
+    .feedback-grid {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .feedback-card {
+        width: 100%;
+        max-width: 380px;
+    }
+
+    .feedback-card.destaque {
+        transform: none;
+    }
+
+    .footer-container {
+        flex-direction: column;
+        gap: 40px;
+    }
 }
