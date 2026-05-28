@@ -21,7 +21,7 @@
         async function carregarDadosUsuario(user) {
             // Buscar dados do perfil
             const { data: perfil, error } = await supabaseClient
-                .from('perfis')
+                .from('alunos')
                 .select('*')
                 .eq('id', user.id)
                 .single();
@@ -103,7 +103,7 @@
 
             const { data: aulas, error } = await supabaseClient
                 .from('aulas')
-                .select('*, perfis(nome)')
+                .select('*, voluntarios(nome)')
                 .order('data', { ascending: true });
 
             const proxHorario = document.getElementById('proxima-aula-horario');
@@ -113,16 +113,16 @@
 
             if (error || !aulas || aulas.length === 0) {
                 container.innerHTML = `
-                    <div class="text-center py-10 bg-white rounded-3xl border border-dashed border-slate-200">
-                        <p class="text-slate-400 font-medium">Nenhuma aula disponível no momento.</p>
-                    </div>
-                `;
-                if (proxHorario && proxTitulo && proxProf && proxLink) {
-                    proxHorario.innerText = "Sem aulas agendadas";
-                    proxTitulo.innerText = "Bons estudos!";
-                    proxProf.innerHTML = `<i data-lucide="user" size="16"></i> Acompanhe sua agenda`;
-                    proxLink.classList.add('hidden');
-                }
+                <div class="text-center py-16 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
+                    <div class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-slate-400 mb-3"><i data-lucide="video-off"></i></div>
+                    <p class="font-bold text-slate-700">Nenhuma aula agendada</p>
+                    <p class="text-slate-400 text-xs mt-1">Fique atento! Novas aulas serão cadastradas em breve.</p>
+                </div>`;
+                if (proxHorario) proxHorario.innerText = "--";
+                if (proxTitulo) proxTitulo.innerText = "Sem aulas no horizonte";
+                if (proxProf) proxProf.innerHTML = "Aproveite para revisar os materiais!";
+                if (proxLink) proxLink.classList.add('hidden');
+                lucide.createIcons();
                 return;
             }
 
@@ -133,7 +133,7 @@
                 const mes = getNomeMes(proxima.data.split('-')[1]);
                 proxHorario.innerText = `${dia} de ${mes} • ${proxima.inicio} às ${proxima.fim}`;
                 proxTitulo.innerText = proxima.titulo;
-                proxProf.innerHTML = `<i data-lucide="user" size="16"></i> Prof(a). ${proxima.perfis?.nome || 'Voluntário'} • ${proxima.materia}`;
+                proxProf.innerHTML = `<i data-lucide="user" size="16"></i> Prof(a). ${proxima.voluntarios?.nome || 'Voluntário'} • ${proxima.materia}`;
                 proxLink.href = proxima.meet_url;
                 proxLink.classList.remove('hidden');
             }
@@ -157,7 +157,7 @@
                         <div>
                             <span class="text-[10px] font-black uppercase ${colorClass} tracking-widest ${bgClass} px-2 py-1 rounded-md">${aula.materia}</span>
                             <h4 class="text-lg font-black text-slate-900 mt-2">${aula.titulo}</h4>
-                            <p class="text-sm text-slate-500 mb-2">Prof(a). ${aula.perfis?.nome || 'Voluntário'}</p>
+                            <p class="text-sm text-slate-500 mb-2">Prof(a). ${aula.voluntarios?.nome || 'Voluntário'}</p>
                             <div class="flex gap-4">
                                 <span class="text-xs text-slate-500 font-medium flex items-center gap-1.5"><i data-lucide="clock" size="14" class="text-slate-400"></i> ${aula.inicio} - ${aula.fim}</span>
                             </div>
@@ -299,7 +299,7 @@
             const serie = document.getElementById('perfil-serie').value;
 
             const { error } = await supabaseClient
-                .from('perfis')
+                .from('alunos')
                 .update({
                     nome: nome,
                     serie: serie,
@@ -326,7 +326,7 @@
             const container = document.getElementById('lista-quizzes-container');
             const { data, error } = await supabaseClient
                 .from('quizzes')
-                .select('*, perfis(nome)');
+                .select('*, voluntarios(nome)');
 
             if (error) {
                 console.error("Erro ao buscar quizzes:", error);
@@ -358,7 +358,7 @@
                             <div>
                                 <h4 class="font-black text-slate-900 text-lg">${quiz.titulo}</h4>
                                 <p class="text-xs font-bold text-slate-400 mt-1 flex items-center gap-2">
-                                    <i data-lucide="user" size="14"></i> Prof. ${quiz.perfis?.nome || 'Desconhecido'} • 
+                                    <i data-lucide="user" size="14"></i> Prof. ${quiz.voluntarios?.nome || 'Desconhecido'} • 
                                     <i data-lucide="list-checks" size="14"></i> ${totalPerguntas} Perguntas
                                 </p>
                             </div>

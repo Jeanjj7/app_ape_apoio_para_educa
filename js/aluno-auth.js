@@ -2,7 +2,16 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (typeof lucide !== 'undefined') lucide.createIcons();
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (session && session.user) {
-        window.location.href = 'aluno.html';
+        const { data: profile } = await supabaseClient
+            .from('alunos')
+            .select('id')
+            .eq('id', session.user.id)
+            .maybeSingle();
+        if (profile) {
+            window.location.href = 'aluno.html';
+        } else {
+            await supabaseClient.auth.signOut();
+        }
     }
 });
 
@@ -28,6 +37,20 @@ window.handleLoginReal = async function(e) {
             btn.innerHTML = originalContent;
             btn.disabled = false;
         } else {
+            const { data: profile, error: profileError } = await supabaseClient
+                .from('alunos')
+                .select('id')
+                .eq('id', data.user.id)
+                .maybeSingle();
+
+            if (profileError || !profile) {
+                await supabaseClient.auth.signOut();
+                alert('Erro: Esta conta não está cadastrada como Aluno!');
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
+                return;
+            }
+
             window.location.href = 'aluno.html';
             btn.innerHTML = originalContent; 
             btn.disabled = false; 
@@ -80,13 +103,13 @@ window.handleSignupReal = async function(e) {
             btn.disabled = false;
         } else {
             if (data.user) {
-                const { error: dbError } = await supabaseClient.from('perfis').insert({
+                const { error: dbError } = await supabaseClient.from('alunos').insert({
                     id: data.user.id,
                     nome: nome,
-                    tipo: 'aluno',
                     email: email,
                     serie: serie,
-                    dificuldade_principal: dificuldade
+                    dificuldade_principal: dificuldade,
+                    senha: pass1
                 });
                 if (dbError) {
                     console.error("Erro ao criar perfil:", dbError);

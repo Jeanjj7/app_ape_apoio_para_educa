@@ -3,7 +3,16 @@
             if (typeof lucide !== 'undefined') lucide.createIcons();
             const { data: { session } } = await supabaseClient.auth.getSession();
             if (session && session.user) {
-                window.location.href = 'voluntario.html';
+                const { data: profile } = await supabaseClient
+                    .from('voluntarios')
+                    .select('id')
+                    .eq('id', session.user.id)
+                    .maybeSingle();
+                if (profile) {
+                    window.location.href = 'voluntario.html';
+                } else {
+                    await supabaseClient.auth.signOut();
+                }
             }
         });
     
@@ -28,6 +37,20 @@ window.handleLoginReal = async function(e) {
                 btn.innerHTML = originalContent;
                 btn.disabled = false;
             } else {
+                const { data: profile, error: profileError } = await supabaseClient
+                    .from('voluntarios')
+                    .select('id')
+                    .eq('id', data.user.id)
+                    .maybeSingle();
+
+                if (profileError || !profile) {
+                    await supabaseClient.auth.signOut();
+                    alert('Erro: Esta conta não está cadastrada como Voluntário!');
+                    btn.innerHTML = originalContent;
+                    btn.disabled = false;
+                    return;
+                }
+
                 window.location.href = 'voluntario.html';
                 btn.innerHTML = originalContent;
                 btn.disabled = false;
@@ -71,12 +94,12 @@ window.handleSignupReal = async function(e) {
                 btn.disabled = false;
             } else {
                 if (data.user) {
-                    const { error: dbError } = await supabaseClient.from('perfis').insert({
+                    const { error: dbError } = await supabaseClient.from('voluntarios').insert({
                         id: data.user.id,
                         nome: nome,
-                        tipo: 'voluntario',
                         email: email,
-                        formacao: disciplina
+                        formacao: disciplina,
+                        senha: pass1
                     });
                     if (dbError) {
                         console.error("Erro ao criar perfil:", dbError);

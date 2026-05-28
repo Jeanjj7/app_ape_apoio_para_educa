@@ -22,7 +22,7 @@
         async function carregarDadosUsuario(user) {
             // Buscar dados do perfil
             const { data: perfil, error } = await supabaseClient
-                .from('perfis')
+                .from('voluntarios')
                 .select('*')
                 .eq('id', user.id)
                 .single();
@@ -412,7 +412,7 @@
             const disciplina = document.getElementById('perfil-disciplina').value;
 
             const { error } = await supabaseClient
-                .from('perfis')
+                .from('voluntarios')
                 .update({
                     nome: nome,
                     formacao: disciplina
